@@ -1,0 +1,6 @@
+{
+  "folder-color.pathColors": [],
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  }
+}

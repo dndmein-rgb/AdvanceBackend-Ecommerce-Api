@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+//ipconfig /flushdns
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  SELLER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+
+  firstName String
+  lastName  String
+  username  String @unique
+
+  role        Role   @default(USER)
+  phoneNumber String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses Address[]
+  products  Product[]
+  orders    Order[]
+  cart      Cart?
+}
+
+model Address {
+  id     String @id @default(uuid())
+  userId String
+
+  addressLine1 String
+  addressLine2 String?
+
+  city    String
+  state   String
+  pinCode String
+  country String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id String @id @default(uuid())
+
+  categoryName        String @unique
+  categoryDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
+model Product {
+  id         String @id @default(uuid())
+  userId     String
+  categoryId String
+
+  productName        String
+  productDescription String
+  productImageUrls   String[]
+
+  price    Decimal @db.Decimal(10, 2)
+  stock    Int     @default(0)
+  rating   Int
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id])
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+model Order {
+  id     String @id @default(uuid())
+  userId String
+
+  totalPrice  Decimal     @db.Decimal(10, 2)
+  totalItems  Int
+  orderStatus OrderStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  productId String
+  orderId   String
+
+  quantity        Int
+  priceAtPurchase Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Cart {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+}
+
+model CartItem {
+  id        String @id @default(uuid())
+  cartId    String
+  productId String
+
+  quantity Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+}
