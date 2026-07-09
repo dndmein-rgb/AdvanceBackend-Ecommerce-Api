@@ -31,8 +31,7 @@ model User {
   password String
 
   firstName String
-  lastName  String
-  username  String @unique
+  lastName  String?
 
   role        Role   @default(USER)
   phoneNumber String
@@ -40,10 +39,20 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  addresses Address[]
-  products  Product[]
-  orders    Order[]
-  cart      Cart?
+  addresses     Address[]
+  products      Product[]
+  orders        Order[]
+  cart          Cart?
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id],onDelete: Cascade)
 }
 
 model Address {
@@ -69,7 +78,7 @@ model Address {
 model Category {
   id String @id @default(uuid())
 
-  categoryName        String @unique
+  categoryName        String  @unique
   categoryDescription String?
 
   createdAt DateTime @default(now())

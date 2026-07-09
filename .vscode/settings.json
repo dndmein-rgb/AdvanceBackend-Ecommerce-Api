@@ -2,5 +2,14 @@
   "folder-color.pathColors": [],
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "js/ts.tsserver.maxMemory": 4096,
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/dist/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true
   }
 }
