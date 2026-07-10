@@ -1,3 +1,5 @@
+import { Role } from "@prisma/client";
+
 export type UserResponseDTO = {
   id: string;
   firstName: string;
@@ -5,7 +7,7 @@ export type UserResponseDTO = {
   email: string;
   password: string;
   phoneNumber: string;
-  role: string;
+  role: Role;
   createdAt: Date;
   updatedAt: Date;
 };

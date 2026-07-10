@@ -1,16 +1,28 @@
-import { User } from "@prisma/client"
-import { UserResponseDTO } from "./auth.reponse.js"
+import { User } from "@prisma/client";
+import { UserResponseDTO } from "./auth.reponse.js";
+import { IJwtPayload } from "../../types/index.js";
 
-export const toUserResponse=(user:User):UserResponseDTO=>{
-    return {
-        id:user.id,
-        firstName:user.firstName,
-        lastName: user.lastName,
-  email: user.email,
-  password: user.password,
-  phoneNumber: user.phoneNumber,
-  role: user.role,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt
-    }
-}
+export const toUserResponse = (user: User): UserResponseDTO => {
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    password: user.password,
+    phoneNumber: user.phoneNumber,
+    role: user.role,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+};
+
+export const toJwtResponse = (user: User):IJwtPayload => {
+  return {
+    
+    id: user.id,
+    role: user.role,
+    phoneNumber: user.phoneNumber,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+};
