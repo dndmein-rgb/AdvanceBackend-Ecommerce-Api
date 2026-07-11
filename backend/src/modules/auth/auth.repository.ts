@@ -8,6 +8,15 @@ export class AuthRepository implements IAuthRepository {
       where: { email },
     });
   }
+
+  async getUserById(userId: string): Promise<User | null> {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+  }
+
   async createUser(data: {
     firstName: string;
     lastName?: string | null;
@@ -20,6 +29,7 @@ export class AuthRepository implements IAuthRepository {
       data,
     });
   }
+
   async createRefreshToken(
     data: CreateRefreshTokenInput,
   ): Promise<RefreshToken> {
@@ -27,5 +37,32 @@ export class AuthRepository implements IAuthRepository {
       data,
     });
   }
-  
+
+  async findRefreshToken(
+    hashedRefreshToken: string,
+  ): Promise<RefreshToken | null> {
+    return await prisma.refreshToken.findUnique({
+      where: {
+        token: hashedRefreshToken,
+      },
+    });
+  }
+
+  async deleteRefreshToken(token: string): Promise<void> {
+    await prisma.refreshToken.delete({
+      where: { token },
+    });
+  }
+
+  async deleteRefreshTokenById(id: string): Promise<void> {
+    await prisma.refreshToken.delete({
+      where: { id },
+    });
+  }
+
+  async deleteAllRefreshTokensByUserId(userId: string): Promise<{ count: number; }> {
+    return await prisma.refreshToken.deleteMany({
+      where:{userId}
+    })
+  }
 }

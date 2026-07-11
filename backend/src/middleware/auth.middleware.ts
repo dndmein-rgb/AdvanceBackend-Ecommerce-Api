@@ -4,7 +4,7 @@ import { AppError } from "../utils/AppError.js";
 import { verifyAccessToken } from "../utils/jwt.helper.js";
 import { IJwtPayload } from "../types/index.js";
 
-export const verifyUser = async (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -15,7 +15,6 @@ export const verifyUser = async (
     const token =
       req.cookies?.accessToken ||
       (authHeader?.startsWith("Bearer") ? authHeader.substring(7) : undefined);
-
     if (!token) {
       throw new AppError("Unauthorized", 401);
     }
@@ -24,6 +23,8 @@ export const verifyUser = async (
       throw new AppError("Unauthorized", 401);
     }
     req.user = decoded;
+
+    next()
   } catch (error) {
     next(
       error instanceof AppError

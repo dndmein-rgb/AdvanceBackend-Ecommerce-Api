@@ -11,10 +11,31 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../../utils/jwt.helper.js";
+import { User } from "@prisma/client";
+import { REFRESH_TOKEN_EXPIRES_MS } from "../../constants/time.constants.js";
 
 export class AuthService {
   constructor(private readonly userRepo: IAuthRepository) {}
 
+  async generateTokens(user: User) {
+    const jwtPayload = toJwtResponse(user);
+
+    const accessToken = generateAccessToken(jwtPayload);
+    const refreshToken = generateRefreshToken(jwtPayload);
+
+    const hashedRefreshToken = hashRefreshToken(refreshToken);
+
+    await this.userRepo.createRefreshToken({
+      token: hashedRefreshToken,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRES_MS),
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
   async registerUser(data: registerUserDTO) {
     const { firstName, lastName, email, password, phoneNumber, role } = data;
 
@@ -33,22 +54,10 @@ export class AuthService {
       phoneNumber,
       role: role ?? "USER",
     });
-    const jwtPayload = toJwtResponse(newUser);
-
-    const accessToken = generateAccessToken(jwtPayload);
-    const refreshToken = generateRefreshToken(jwtPayload);
-
-    const hashedRefreshToken = hashRefreshToken(refreshToken);
-
-    await this.userRepo.createRefreshToken({
-      token: hashedRefreshToken,
-      userId: newUser.id,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    });
+    const tokens = await this.generateTokens(newUser);
     return {
       user: toUserResponse(newUser),
-      accessToken,
-      refreshToken,
+      ...tokens,
     };
   }
   async loginUser(body: loginUserDTO) {
@@ -64,21 +73,30 @@ export class AuthService {
     if (!validPassword) {
       throw new AppError("Invalid credentials", 401);
     }
-     const jwtPayload = toJwtResponse(user);
-    const accessToken = generateAccessToken(jwtPayload);
-    const refreshToken = generateRefreshToken(jwtPayload);
-
-    const hashedRefreshToken = hashRefreshToken(refreshToken);
-
-    await this.userRepo.createRefreshToken({
-      token: hashedRefreshToken,
-      userId: user.id,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    });
+    const tokens = await this.generateTokens(user);
     return {
-      user:toUserResponse(user),
-      accessToken,
-      refreshToken
+      user: toUserResponse(user),
+      ...tokens,
+    };
+  }
+  async getCurrentUser(userId: string) {
+    const user = await this.userRepo.getUserById(userId);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
     }
+    return toUserResponse(user);
+  }
+
+  async logoutUser(refreshToken: string) {
+    if (!refreshToken) return;
+    const hashedtoken = hashRefreshToken(refreshToken);
+    await this.userRepo.deleteRefreshToken(hashedtoken);
+  }
+  async logoutFromAllDevices(userId: string) {
+    if (!userId) {
+      throw new AppError("User ID is required", 400);
+    }
+    await this.userRepo.deleteAllRefreshTokensByUserId(userId);
   }
 }

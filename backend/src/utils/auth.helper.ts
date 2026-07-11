@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { NODE_ENV } from "../config/config.js";
 import { Response } from "express";
+import { ACCESS_TOKEN_EXPIRES_MS, REFRESH_TOKEN_EXPIRES_MS } from "../constants/time.constants.js";
 
 const isProduction = NODE_ENV === "production";
 
@@ -29,13 +30,13 @@ export const setCookies = (
     httpOnly: true,
     secure: isProduction,
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: ACCESS_TOKEN_EXPIRES_MS,
   });
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: isProduction,
     sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    maxAge: REFRESH_TOKEN_EXPIRES_MS,
   });
 };
 
@@ -44,12 +45,12 @@ export const destroyCookies = (res: Response) => {
     httpOnly: true,
     secure: isProduction,
     sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: ACCESS_TOKEN_EXPIRES_MS,
   });
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: isProduction,
     sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
+    maxAge: REFRESH_TOKEN_EXPIRES_MS,
   });
 };
