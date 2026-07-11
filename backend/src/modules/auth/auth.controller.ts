@@ -7,7 +7,7 @@ import { destroyCookies, setCookies } from "../../utils/auth.helper.js";
 export const registerUserController = catchAsync(
   async (req: Request, res: Response) => {
     const result = await authService.registerUser(req.body);
-    setCookies(res,result.accessToken,result.refreshToken);
+    setCookies(res, result.accessToken, result.refreshToken);
     sendResponse(res, 201, {
       success: true,
       message: "User created successfully",
@@ -16,9 +16,10 @@ export const registerUserController = catchAsync(
   },
 );
 
-export const loginUserController=catchAsync(async(req:Request,res:Response)=>{
-  const result=await authService.loginUser(req.body)
- setCookies(res, result.accessToken, result.refreshToken);
+export const loginUserController = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await authService.loginUser(req.body);
+    setCookies(res, result.accessToken, result.refreshToken);
 
     sendResponse(res, 200, {
       success: true,
@@ -28,32 +29,51 @@ export const loginUserController=catchAsync(async(req:Request,res:Response)=>{
   },
 );
 
-export const getloggedInUserController=catchAsync(async(req:Request,res:Response)=>{
-  const result=await authService.getCurrentUser(req.user!.id)
+export const refreshTokenController=catchAsync(async(req:Request,res:Response)=>{
+const refreshToken=req.cookies?.refreshToken
+const tokens=await authService.refreshAccessToken(refreshToken);
 
-  sendResponse(res,200,{
-    success:true,
-    message:"User data fetched successfully",
-    data:result
-  })
+setCookies(res,tokens.accessToken,tokens.refreshToken)
+
+sendResponse(res,201,{
+  success:true,
+  message:"Token refreshed successfully",
+  data:tokens
+})
 })
 
-export const logoutUserController=catchAsync(async(req:Request,res:Response)=>{
-  const refreshToken=req.cookies?.refreshToken
-  if(refreshToken){
-    await authService.logoutUser(refreshToken)
-  }
-  destroyCookies(res)
-  sendResponse(res,200,{
-    success:true,
-    message:"User logged out successfully",
-  })
-})
+export const getloggedInUserController = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await authService.getCurrentUser(req.user!.id);
 
-export const logoutFromAllDevicesController=catchAsync(async (req:Request,res:Response)=>{
-  const result=await authService.logoutFromAllDevices(req.user!.id)
-  sendResponse(res,200,{
-    success:true,
-    message:"Logged out from all devices successfully"
-  })
-})
+    sendResponse(res, 200, {
+      success: true,
+      message: "User data fetched successfully",
+      data: result,
+    });
+  },
+);
+
+export const logoutUserController = catchAsync(
+  async (req: Request, res: Response) => {
+    const refreshToken = req.cookies?.refreshToken;
+    if (refreshToken) {
+      await authService.logoutUser(refreshToken);
+    }
+    destroyCookies(res);
+    sendResponse(res, 200, {
+      success: true,
+      message: "User logged out successfully",
+    });
+  },
+);
+
+export const logoutFromAllDevicesController = catchAsync(
+  async (req: Request, res: Response) => {
+     await authService.logoutFromAllDevices(req.user!.id);
+    sendResponse(res, 200, {
+      success: true,
+      message: "Logged out from all devices successfully",
+    });
+  },
+);

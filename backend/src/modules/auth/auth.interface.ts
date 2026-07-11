@@ -16,10 +16,11 @@ export interface IAuthRepository {
     phoneNumber: string;
     role: Role;
   }): Promise<User>;
-  createRefreshToken(data: CreateRefreshTokenInput): Promise<RefreshToken>;
   getUserById(userId: string): Promise<User | null>;
-
+  
+  createRefreshToken(data: CreateRefreshTokenInput): Promise<RefreshToken>;
   findRefreshToken(hashedRefreshToken: string): Promise<RefreshToken | null>;
+
   deleteRefreshToken(token:string):Promise<void>
   deleteRefreshTokenById(id:string):Promise<void>
   deleteAllRefreshTokensByUserId(userId:string):Promise<{count:number}>

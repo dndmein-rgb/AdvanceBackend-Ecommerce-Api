@@ -10,6 +10,7 @@ import { toJwtResponse, toUserResponse } from "./auth.mapper.js";
 import {
   generateAccessToken,
   generateRefreshToken,
+  verifyRefreshToken,
 } from "../../utils/jwt.helper.js";
 import { User } from "@prisma/client";
 import { REFRESH_TOKEN_EXPIRES_MS } from "../../constants/time.constants.js";
@@ -88,10 +89,36 @@ export class AuthService {
     return toUserResponse(user);
   }
 
+  async refreshAccessToken(refreshToken: string) {
+    const decoded = verifyRefreshToken(refreshToken);
+
+    const hashedToken = hashRefreshToken(refreshToken);
+
+    const storedToken = await this.userRepo.findRefreshToken(hashedToken);
+
+    if (!storedToken) {
+      throw new AppError("Invalid refresh token", 401);
+    }
+    if (storedToken.expiresAt < new Date()) {
+      await this.userRepo.deleteRefreshToken(hashedToken);
+
+      throw new AppError("Refresh token expired", 401);
+    }
+    const user = await this.userRepo.getUserById(decoded.id);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+    // rotate refresh token
+
+    await this.userRepo.deleteRefreshToken(hashedToken);
+
+    return await this.generateTokens(user);
+  }
+
   async logoutUser(refreshToken: string) {
-    if (!refreshToken) return;
-    const hashedtoken = hashRefreshToken(refreshToken);
-    await this.userRepo.deleteRefreshToken(hashedtoken);
+    const hashedToken = hashRefreshToken(refreshToken);
+    await this.userRepo.deleteRefreshToken(hashedToken);
   }
   async logoutFromAllDevices(userId: string) {
     if (!userId) {

@@ -24,7 +24,7 @@ export const authenticate = async (
     }
     req.user = decoded;
 
-    next()
+    next();
   } catch (error) {
     next(
       error instanceof AppError
@@ -32,4 +32,20 @@ export const authenticate = async (
         : new AppError("Invalid or expired token", 401),
     );
   }
+};
+
+export const verifySeller = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const user = req.user;
+
+  if (!req.user) {
+    throw new AppError("Unauthorized", 401);
+  }
+  if (req.user.role !== "SELLER") {
+    throw new AppError("You are not authorized", 403);
+  }
+  next();
 };
