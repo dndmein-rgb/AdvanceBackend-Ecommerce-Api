@@ -52,7 +52,7 @@ model RefreshToken {
   userId    String
   expiresAt DateTime
 
-  user User @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Address {
@@ -76,10 +76,10 @@ model Address {
 }
 
 model Category {
-  id String @id @default(uuid())
-
-  categoryName        String  @unique
-  categoryDescription String?
+  id          String @id @default(uuid())
+  name        String @unique
+  slug        String @unique
+  description String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

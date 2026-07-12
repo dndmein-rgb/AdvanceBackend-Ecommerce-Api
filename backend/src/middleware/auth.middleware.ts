@@ -3,6 +3,7 @@ import { AuthService } from "../modules/auth/auth.service.js";
 import { AppError } from "../utils/AppError.js";
 import { verifyAccessToken } from "../utils/jwt.helper.js";
 import { IJwtPayload } from "../types/index.js";
+import { Role } from "@prisma/client";
 
 export const authenticate = async (
   req: Request,
@@ -48,4 +49,19 @@ export const verifySeller = async (
     throw new AppError("You are not authorized", 403);
   }
   next();
+};
+
+export const authorize = (...roles: Role[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    if (!roles.includes(req.user.role)) {
+      throw new AppError("Forbidden", 403);
+    }
+
+    next();
+  };
 };
