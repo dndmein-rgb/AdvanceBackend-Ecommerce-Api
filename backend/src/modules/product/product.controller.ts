@@ -46,3 +46,21 @@ export const deleteProductController = catchAsync(
     });
   },
 );
+
+export const getProductsByCategoryIdController =
+catchAsync(
+async(req:Request,res:Response)=>{
+
+  const result =
+    await productService.getProductsByCategorySlug(
+      req.params.slug as string
+    );
+
+
+  sendResponse(res,200,{
+    success:true,
+    message:"Products fetched successfully",
+    data:result
+  });
+
+});

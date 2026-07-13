@@ -1,5 +1,5 @@
 import { Product } from "@prisma/client";
-import { CreateProductInput, IProductRepository,  } from "./product.interface.js";
+import { CreateProductInput, IProductRepository } from "./product.interface.js";
 import { prisma } from "../../lib/prisma.js";
 
 export class ProductRepository implements IProductRepository {
@@ -13,14 +13,31 @@ export class ProductRepository implements IProductRepository {
       where: { slug },
     });
   }
-   async getProductById(id: string): Promise<Product | null> {
-     return await prisma.product.findUnique({
-      where:{id}
-     })
-   }
-   async deleteProductById(id: string): Promise<void> {
-      await prisma.product.delete({
-      where:{id}
-     })
-   }
+  async getProductById(id: string): Promise<Product | null> {
+    return await prisma.product.findUnique({
+      where: { id },
+    });
+  }
+  async deleteProductById(id: string): Promise<Product> {
+    return await prisma.product.delete({
+      where: { id },
+    });
+  }
+  async getProductsCountByCategoryId(categoryId: string): Promise<number> {
+    return await prisma.product.count({
+      where: { categoryId },
+    });
+  }
+
+  async getProductsByCategory(categoryId: string): Promise<Product[]> {
+    return await prisma.product.findMany({
+      where: {
+        categoryId,
+        isActive: true,
+      },
+      orderBy:{
+        createdAt:"desc"
+      }
+    });
+  }
 }

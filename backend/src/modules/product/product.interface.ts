@@ -10,13 +10,16 @@ export interface CreateProductInput {
   price: number;
   stock: number;
 }
-export interface IProductRepository{
-    createProduct(data:CreateProductInput
-   ):Promise<Product>;
+export interface IProductRepository {
+  createProduct(data: CreateProductInput): Promise<Product>;
 
-   getProductBySlug(slug:string):Promise<Product|null>
+  getProductBySlug(slug: string): Promise<Product | null>;
 
-   getProductById(id:string):Promise<Product|null>
+  getProductById(id: string): Promise<Product | null>;
 
-   deleteProductById(id:string):Promise<void>
+  deleteProductById(id: string): Promise<Product>;
+
+  getProductsCountByCategoryId(categoryId: string): Promise<number>;
+
+  getProductsByCategoryId(categoryId: string): Promise<Product[]>;
 }

@@ -1,4 +1,5 @@
 import { Category } from "@prisma/client";
+import { updateCategoryDTO } from "./category.schema.js";
 
 export interface ICategoryRepository {
   createCategory(data: {
@@ -7,12 +8,17 @@ export interface ICategoryRepository {
     description?: string;
   }): Promise<Category>;
 
-  getCategoryByName(name:string):Promise<Category|null>
+  getCategoryByName(name: string): Promise<Category | null>;
 
-  getCategoryByNameOrSlug(name:string,slug:string):Promise<Category |null>
+  getCategoryByNameOrSlug(name: string, slug: string): Promise<Category | null>;
 
-  getCategoryById(id:string):Promise<Category|null>
+  getCategoryById(id: string): Promise<Category | null>;
 
-  getAllCategories():Promise<Category[]>
+  getAllCategories(): Promise<Category[]>;
 
+  deleteCategoryById(id: string): Promise<Category>;
+
+  updateCategory(id: string, data: updateCategoryDTO): Promise<Category>;
+
+  getCategoryBySlug(slug: string): Promise<Category |null>;
 }

@@ -2,7 +2,7 @@ import { AppError } from "../../utils/AppError.js";
 import { deleteFromCloudinary } from "../../utils/cloudinary.helper.js";
 import { ICategoryRepository } from "../category/category.interface.js";
 import { IProductRepository } from "./product.interface.js";
-import { toProductResponse } from "./product.mapper.js";
+import { toProductListResponse, toProductResponse } from "./product.mapper.js";
 import { CreateProductDTO } from "./product.schema.js";
 
 export class ProductService {
@@ -65,5 +65,18 @@ export class ProductService {
 
     const deletedProduct = await this.productRepo.deleteProductById(productId);
     return deletedProduct;
+  }
+
+  async getProductsByCategorySlug(slug:string){
+    const category =await this.categoryRepo.getCategoryBySlug(slug)
+
+    if(!category){
+      throw new AppError("Category not found",404)
+    }
+
+    const products=await this.productRepo.getProductsByCategoryId(
+      category.id
+    )
+    return toProductListResponse(products)
   }
 }

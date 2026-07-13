@@ -8,6 +8,6 @@ export const createProductSchema=z.object({
     productImageUrls:z.array(z.url()).optional(),
     price:z.coerce.number().positive("Price must be greater than 0"),
     stock:z.coerce.number().int().nonnegative().optional()
-})
+}).strict()
 
 export type CreateProductDTO=z.infer<typeof createProductSchema>

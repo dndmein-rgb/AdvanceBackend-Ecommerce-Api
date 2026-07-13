@@ -1,6 +1,7 @@
 import { Category } from "@prisma/client";
 import { ICategoryRepository } from "./category.interface.js";
 import { prisma } from "../../lib/prisma.js";
+import { updateCategoryDTO } from "./category.schema.js";
 
 export class CategoryRepository implements ICategoryRepository {
   async createCategory(data: {
@@ -28,10 +29,10 @@ export class CategoryRepository implements ICategoryRepository {
 
   async getCategoryById(id: string): Promise<Category | null> {
     return await prisma.category.findUnique({
-      where:{
-        id
-      }
-    })
+      where: {
+        id,
+      },
+    });
   }
 
   async getCategoryByNameOrSlug(
@@ -48,5 +49,22 @@ export class CategoryRepository implements ICategoryRepository {
         ],
       },
     });
+  }
+  async deleteCategoryById(id: string): Promise<Category> {
+    return await prisma.category.delete({
+      where: { id },
+    });
+  }
+  async updateCategory(id: string, data: updateCategoryDTO): Promise<Category> {
+    return await prisma.category.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async getCategoryBySlug(slug: string): Promise<Category|null> {
+    return await prisma.category.findUnique({
+      where:{slug}
+    })
   }
 }

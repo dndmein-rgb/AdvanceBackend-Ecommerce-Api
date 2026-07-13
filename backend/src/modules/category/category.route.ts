@@ -1,9 +1,42 @@
-import express from "express"
+import express from "express";
 import { authenticate, authorize } from "../../middleware/auth.middleware.js";
-import { createCategoryController } from "./category.controller.js";
+import {
+  createCategoryController,
+  deleteCategoryController,
+  getAllCategoryController,
+  getCategoryByIdController,
+  updateCategoryController,
+} from "./category.controller.js";
+import { validate } from "../../middleware/validate.middleware.js";
+import {
+  createCategorySchema,
+  updateCategorySchema,
+} from "./category.schema.js";
 
-const router=express.Router();
+const router = express.Router();
 
-router.route("/create").post(authenticate, authorize("ADMIN"),createCategoryController)
+router.route("/all-category").get(getAllCategoryController);
+router
+  .route("/create")
+  .post(
+    authenticate,
+    authorize("ADMIN"),
+    validate(createCategorySchema),
+    createCategoryController,
+  );
+router
+  .route("/delete/:categoryId")
+  .delete(authenticate, authorize("ADMIN", "SELLER"), deleteCategoryController);
 
-export default router
+  router.route("/:categoryId").get(authenticate,getCategoryByIdController)
+
+router
+  .route("/:id")
+  .patch(
+    authenticate,
+    authorize("ADMIN"),
+    validate(updateCategorySchema),
+    updateCategoryController,
+  );
+
+export default router;

@@ -1,11 +1,7 @@
 import { Product } from "@prisma/client";
 import { ProductResponseDTO } from "./product.response.js";
 
-
-export const toProductResponse = (
-  product: Product
-): ProductResponseDTO => {
-
+export const toProductResponse = (product: Product): ProductResponseDTO => {
   return {
     id: product.id,
 
@@ -17,31 +13,26 @@ export const toProductResponse = (
 
     slug: product.slug,
 
-    productDescription:
-      product.productDescription,
+    productDescription: product.productDescription,
 
-    productImageUrls:
-      product.productImageUrls,
+    productImageUrls: product.productImageUrls,
 
-    price:
-      Number(product.price),
+    price: Number(product.price),
 
-    stock:
-      product.stock,
+    stock: product.stock,
 
-    averageRating:
-      Number(product.averageRating),
+    averageRating: Number(product.averageRating),
 
-    reviewCount:
-      product.reviewCount,
+    reviewCount: product.reviewCount,
 
-    isActive:
-      product.isActive,
+    isActive: product.isActive,
 
-    createdAt:
-      product.createdAt,
+    createdAt: product.createdAt,
 
-    updatedAt:
-      product.updatedAt,
+    updatedAt: product.updatedAt,
   };
 };
+
+export const toProductListResponse=(categories:Product[])=>{
+  return categories.map(toProductResponse)
+}
