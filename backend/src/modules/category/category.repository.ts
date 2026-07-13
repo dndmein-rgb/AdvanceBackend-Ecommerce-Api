@@ -26,6 +26,14 @@ export class CategoryRepository implements ICategoryRepository {
     });
   }
 
+  async getCategoryById(id: string): Promise<Category | null> {
+    return await prisma.category.findUnique({
+      where:{
+        id
+      }
+    })
+  }
+
   async getCategoryByNameOrSlug(
     name: string,
     slug: string,

@@ -76,9 +76,9 @@ model Address {
 }
 
 model Category {
-  id          String @id @default(uuid())
-  name        String @unique
-  slug        String @unique
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique
   description String?
 
   createdAt DateTime @default(now())
@@ -87,32 +87,38 @@ model Category {
   products Product[]
 }
 
-model Product {
-  id         String @id @default(uuid())
-  userId     String
-  categoryId String
+  model Product {
+    id String @id @default(uuid())
 
-  productName        String
-  productDescription String
-  productImageUrls   String[]
+    sellerId   String
+    categoryId String
 
-  price    Decimal @db.Decimal(10, 2)
-  stock    Int     @default(0)
-  rating   Int
-  isActive Boolean @default(true)
+    productName String
+    slug        String @unique
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    productDescription String
+    productImageUrls   String[]
 
-  user       User        @relation(fields: [userId], references: [id])
-  category   Category    @relation(fields: [categoryId], references: [id])
-  orderItems OrderItem[]
-  cartItems  CartItem[]
+    price Decimal @db.Decimal(10, 2)
+    stock Int     @default(0)
 
-  @@index([userId])
-  @@index([categoryId])
-  @@index([createdAt])
-}
+    averageRating Decimal @default(0) @db.Decimal(3, 2)
+    reviewCount   Int     @default(0)
+    isActive      Boolean @default(true)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    seller     User        @relation(fields: [sellerId], references: [id],onDelete: Restrict)
+    category   Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+    orderItems OrderItem[]
+    cartItems  CartItem[]
+
+    @@index([sellerId, createdAt])
+    @@index([categoryId])
+    @@index([categoryId, isActive])
+    @@index([createdAt])
+  }
 
 model Order {
   id     String @id @default(uuid())

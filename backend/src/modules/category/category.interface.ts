@@ -11,5 +11,8 @@ export interface ICategoryRepository {
 
   getCategoryByNameOrSlug(name:string,slug:string):Promise<Category |null>
 
+  getCategoryById(id:string):Promise<Category|null>
+
   getAllCategories():Promise<Category[]>
+
 }
