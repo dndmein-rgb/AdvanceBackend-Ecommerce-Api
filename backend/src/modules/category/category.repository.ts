@@ -1,5 +1,5 @@
 import { Category } from "@prisma/client";
-import { ICategoryRepository } from "./category.interface.js";
+import { ICategoryRepository, UpdateCategoryInput } from "./category.interface.js";
 import { prisma } from "../../lib/prisma.js";
 import { updateCategoryDTO } from "./category.schema.js";
 
@@ -55,7 +55,7 @@ export class CategoryRepository implements ICategoryRepository {
       where: { id },
     });
   }
-  async updateCategory(id: string, data: updateCategoryDTO): Promise<Category> {
+  async updateCategory(id: string, data: UpdateCategoryInput): Promise<Category> {
     return await prisma.category.update({
       where: { id },
       data,

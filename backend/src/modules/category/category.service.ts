@@ -1,6 +1,6 @@
 import { AppError } from "../../utils/AppError.js";
 import { IProductRepository } from "../product/product.interface.js";
-import { ICategoryRepository } from "./category.interface.js";
+import { ICategoryRepository, UpdateCategoryInput } from "./category.interface.js";
 import {
   toCategoryListResponse,
   toCategoryResponse,
@@ -13,12 +13,16 @@ export class CategoryService {
     private readonly productRepo: IProductRepository,
   ) {}
 
-  async createCategory(data: createCategoryDTO) {
-    const slug = data.name
+  private async generateSlug(name: string) {
+    const slug = name
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9\s-]/g, "")
       .replace(/\s+/g, "-");
+      return slug
+  }
+  async createCategory(data: createCategoryDTO) {
+    const slug =await  this.generateSlug(data.name)
     const existingCategory = await this.categoryRepo.getCategoryByNameOrSlug(
       data.name,
       slug,
@@ -63,15 +67,24 @@ export class CategoryService {
     return toCategoryResponse(deleted);
   }
 
-  async updateCategory(categoryId: string, data: updateCategoryDTO) {
+  async updateCategory(categoryId: string, data: UpdateCategoryInput) {
     const category = await this.categoryRepo.getCategoryById(categoryId);
     if (!category) {
       throw new AppError("Category not found", 404);
     }
 
-    const updatedCategory = await this.categoryRepo.updateCategory(
+    const updatedData={...data};
+    if(data.name && data.name!==category.name){
+      const existingCategory=await this.categoryRepo.getCategoryByName(data.name);
+      if(existingCategory){
+        throw new AppError("Category with this name already exists ",400)
+      }
+      updatedData.slug=await this.generateSlug(data.name)
+    }
+    const updatedCategory =
+    await this.categoryRepo.updateCategory(
       categoryId,
-      data,
+      updatedData
     );
     return toCategoryResponse(updatedCategory);
   }

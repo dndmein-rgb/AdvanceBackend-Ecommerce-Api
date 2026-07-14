@@ -1,4 +1,4 @@
-import { Product } from "@prisma/client";
+import { Prisma, Product } from "@prisma/client";
 
 export interface CreateProductInput {
   sellerId: string;
@@ -9,6 +9,16 @@ export interface CreateProductInput {
   productImageUrls: string[];
   price: number;
   stock: number;
+}
+
+export interface UpdateProductInput {
+  productName?: string;
+  productDescription?: string;
+  productImageUrls?: string[];
+  slug?: string;
+  price?: number;
+  stock?: number;
+  categoryId?: string;
 }
 export interface IProductRepository {
   createProduct(data: CreateProductInput): Promise<Product>;
@@ -22,4 +32,15 @@ export interface IProductRepository {
   getProductsCountByCategoryId(categoryId: string): Promise<number>;
 
   getProductsByCategoryId(categoryId: string): Promise<Product[]>;
+
+  getAllActiveProducts():Promise<Product[]>
+  getAllProducts(): Promise<Product[]>;
+
+  updateProduct(id: string, data: UpdateProductInput): Promise<Product>;
+
+  toggleActive(
+    productId: string,
+    sellerId: string,
+    isActive: boolean,
+  ): Promise<Product>;
 }

@@ -8,7 +8,6 @@ export const toUserResponse = (user: User): UserResponseDTO => {
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
-    password: user.password,
     phoneNumber: user.phoneNumber,
     role: user.role,
     createdAt: user.createdAt,
