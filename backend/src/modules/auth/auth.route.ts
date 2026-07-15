@@ -19,7 +19,7 @@ router
 router.route("/login").post(validate(loginUserSchema), loginUserController);
 router.route("/me").get(authenticate, getloggedInUserController);
 router.route("/logout").post(logoutUserController);
-router.route("/logout-all").post(authenticate,logoutFromAllDevicesController)
-router.route("/refresh-token").post(refreshTokenController)
+router.route("/logout-all").post(authenticate, logoutFromAllDevicesController);
+router.route("/refresh-token").post(refreshTokenController);
 
 export default router;

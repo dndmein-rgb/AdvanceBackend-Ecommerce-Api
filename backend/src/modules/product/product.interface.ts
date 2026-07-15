@@ -33,7 +33,9 @@ export interface IProductRepository {
 
   getProductsByCategoryId(categoryId: string): Promise<Product[]>;
 
-  getAllActiveProducts():Promise<Product[]>
+  getProductsByIds(productIds: string[]): Promise<Product[]>;
+
+  getAllActiveProducts(): Promise<Product[]>;
   getAllProducts(): Promise<Product[]>;
 
   updateProduct(id: string, data: UpdateProductInput): Promise<Product>;
