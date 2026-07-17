@@ -12,7 +12,7 @@ export class OrderService {
     userId: string,
     data: CreateOrderDTO,
   ): Promise<OrderResponseDTO> {
-    const { items } = data;
+    const { items, addressId } = data;
 
     if (!items || items.length === 0) {
       throw new AppError("Order must contain atleast one item", 400);

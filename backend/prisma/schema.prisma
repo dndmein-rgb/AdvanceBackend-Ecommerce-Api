@@ -59,6 +59,7 @@ model Address {
   id     String @id @default(uuid())
   userId String
 
+  addressType  String
   addressLine1 String
   addressLine2 String?
 
@@ -128,13 +129,30 @@ model Order {
   totalItems  Int
   orderStatus OrderStatus @default(PENDING)
 
+  shippingAddress OrderAddress? 
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items OrderItem[]
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items          OrderItem[]
 
   @@index([userId])
+}
+
+model OrderAddress {
+  id      String @id @default(uuid())
+  orderId String @unique
+
+  addressLine1 String
+  addressLine2 String?
+
+  city    String
+  state   String
+  pinCode String
+  country String
+  
+  order Order @relation(fields: [orderId],references: [id],onDelete: Cascade)
 }
 
 model OrderItem {

@@ -1,7 +1,7 @@
-import { Order, OrderStatus } from "@prisma/client";
+import { OrderStatus } from "@prisma/client";
 import { IOrderRepository, OrderDetails } from "./order.interface.js";
 import { prisma } from "../../lib/prisma.js";
-import { CreateOrderDTO, UpdateOrderStatusDTO } from "./order.schema.js";
+import { CreateOrderDTO } from "./order.schema.js";
 import { Decimal } from "@prisma/client/runtime/client";
 import { AppError } from "../../utils/AppError.js";
 
@@ -12,6 +12,17 @@ export class OrderRepository implements IOrderRepository {
   ): Promise<OrderDetails> {
     // Execute all database adjustments inside a single atomic transaction
     return await prisma.$transaction(async (tx) => {
+      // Fetch the selected profile address
+      const address = await tx.address.findUnique({
+        where: {
+          id: data.addressId,
+        },
+      });
+
+      if (!address || address.userId !== userId) {
+        throw new AppError("Invalid address", 400);
+      }
+
       const productIds = data.items.map((item) => item.productId);
 
       // 1. Fetch all matching products
@@ -88,48 +99,80 @@ export class OrderRepository implements IOrderRepository {
             },
           },
         },
-        include: {
-          items: true,
+      });
+
+      // 5. Create historical address record tied directly to the new order
+      await tx.orderAddress.create({
+        data: {
+          orderId: order.id,
+          addressLine1: address.addressLine1,
+          addressLine2: address.addressLine2,
+          city: address.city,
+          state: address.state,
+          pinCode: address.pinCode,
+          country: address.country,
         },
       });
 
-      return order;
+      // 6. Pull entire assembled order record out to pass back cleanly
+      const fullOrder = await tx.order.findUnique({
+        where: { id: order.id },
+        include: { 
+          items: true, 
+          shippingAddress: true // Matches schema.prisma field name
+        },
+      });
+
+      if (!fullOrder) {
+        throw new AppError("Failed to fetch created order summary data", 500);
+      }
+
+      return fullOrder as OrderDetails;
     });
   }
+
   async getOrderById(orderId: string): Promise<OrderDetails | null> {
-    return await prisma.order.findUnique({
+    const order = await prisma.order.findUnique({
       where: {
         id: orderId,
       },
       include: {
         items: true,
+        shippingAddress: true,
       },
     });
+    return order as OrderDetails | null;
   }
+
   async getOrdersByUserId(userId: string): Promise<OrderDetails[]> {
-    return await prisma.order.findMany({
+    const orders = await prisma.order.findMany({
       where: {
         userId,
       },
       include: {
         items: true,
+        shippingAddress: true,
       },
     });
+    return orders as OrderDetails[];
   }
+
   async updateOrderStatus(
     orderId: string,
     orderStatus: OrderStatus,
   ): Promise<OrderDetails> {
     try {
-      return await prisma.order.update({
+      const updatedOrder = await prisma.order.update({
         where: { id: orderId, orderStatus: "PENDING" },
         data: {
           orderStatus,
         },
         include: {
           items: true,
+          shippingAddress: true,
         },
       });
+      return updatedOrder as OrderDetails;
     } catch (error) {
       throw new AppError(
         "Order could not be updated. It may have already been processed.",

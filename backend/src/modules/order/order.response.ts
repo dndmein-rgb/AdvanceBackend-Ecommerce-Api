@@ -7,6 +7,16 @@ export interface OrderItemResponseDTO {
   priceAtPurchase: number;
 }
 
+export interface OrderAddressResponseDTO {
+  id: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  city: string;
+  state: string;
+  pinCode: string;
+  country: string;
+}
+
 export interface OrderResponseDTO {
   id: string;
   userId: string;
@@ -16,6 +26,5 @@ export interface OrderResponseDTO {
   createdAt: Date;
   updatedAt: Date;
   items: OrderItemResponseDTO[];
+  shippingAddress: OrderAddressResponseDTO | null;
 }
-
-

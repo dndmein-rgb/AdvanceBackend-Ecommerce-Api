@@ -12,6 +12,7 @@ export const createOrderSchema = z
           .min(1, "Order must contain at least one item"),
       }),
     ),
+    addressId:z.string()
   })
   .strict();
 

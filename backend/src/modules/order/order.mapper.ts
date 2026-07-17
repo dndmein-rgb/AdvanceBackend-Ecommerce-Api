@@ -16,6 +16,17 @@ export const toOrderResponse = (order: OrderDetails): OrderResponseDTO => {
       priceAtPurchase: item.priceAtPurchase.toNumber(),
       quantity: item.quantity,
     })),
+    shippingAddress: order.shippingAddress
+      ? {
+          id: order.shippingAddress.id,
+          addressLine1: order.shippingAddress.addressLine1,
+          addressLine2: order.shippingAddress.addressLine2,
+          city: order.shippingAddress.city,
+          state: order.shippingAddress.state,
+          pinCode: order.shippingAddress.pinCode,
+          country: order.shippingAddress.country,
+        }
+      : null,
   };
 };
 

@@ -8,6 +8,16 @@ export interface OrderItemData {
   priceAtPurchase: Decimal;
 }
 
+export interface OrderAddressData {
+  id: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  city: string;
+  state: string;
+  pinCode: string;
+  country: string;
+}
+
 export interface OrderDetails {
   id: string;
   userId: string;
@@ -20,6 +30,7 @@ export interface OrderDetails {
   createdAt: Date;
   updatedAt: Date;
   items: OrderItemData[];
+  shippingAddress: OrderAddressData | null;
 }
 
 export interface IOrderRepository {
