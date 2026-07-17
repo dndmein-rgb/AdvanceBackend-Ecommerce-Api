@@ -50,7 +50,6 @@ export const cancelOrderController = catchAsync(
   async (req: Request, res: Response) => {
     const { orderId } = req.params as { orderId: string };
     
-    // req.user is populated by your authentication middleware
     const result = await orderService.cancelOrder(orderId, req.user!.id );
 
     sendResponse(res, 200, {
