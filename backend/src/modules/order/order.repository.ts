@@ -57,22 +57,27 @@ export class OrderRepository implements IOrderRepository {
           );
         }
 
-        if (product.stock < item.quantity) {
-          throw new AppError(
-            `Insufficient stock for ${product.productName}`,
-            400,
-          );
-        }
-
         // 3. Subtract from current product stock
-        await tx.product.update({
-          where: { id: product.id },
+        const updated = await tx.product.updateMany({
+          where: {
+            id: product.id,
+            stock: {
+              gte: item.quantity,
+            },
+          },
           data: {
             stock: {
               decrement: item.quantity,
             },
           },
         });
+
+        if (updated.count === 0) {
+          throw new AppError(
+            `Insufficient stock for ${product.productName}`,
+            400,
+          );
+        }
 
         // Compute pricing lines
         const itemTotalPrice = new Decimal(product.price).mul(item.quantity);
@@ -117,9 +122,9 @@ export class OrderRepository implements IOrderRepository {
       // 6. Pull entire assembled order record out to pass back cleanly
       const fullOrder = await tx.order.findUnique({
         where: { id: order.id },
-        include: { 
-          items: true, 
-          shippingAddress: true // Matches schema.prisma field name
+        include: {
+          items: true,
+          shippingAddress: true, // Matches schema.prisma field name
         },
       });
 
@@ -179,5 +184,52 @@ export class OrderRepository implements IOrderRepository {
         400,
       );
     }
+  }
+
+  async cancelOrder(orderId: string): Promise<OrderDetails> {
+    return await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: {
+          id: orderId,
+        },
+        include: {
+          items: true,
+          shippingAddress: true,
+        },
+      });
+
+      if (!order) {
+        throw new AppError("Order not found", 404);
+      }
+
+      // Restore stock
+      for (const item of order.items) {
+        await tx.product.update({
+          where: {
+            id: item.productId,
+          },
+          data: {
+            stock: {
+              increment: item.quantity,
+            },
+          },
+        });
+      }
+
+      const updatedOrder = await tx.order.update({
+        where: {
+          id: orderId,
+        },
+        data: {
+          orderStatus: OrderStatus.CANCELLED,
+        },
+        include: {
+          items: true,
+          shippingAddress: true,
+        },
+      });
+
+      return updatedOrder as OrderDetails;
+    });
   }
 }

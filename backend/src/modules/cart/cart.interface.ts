@@ -1,6 +1,6 @@
 import { Decimal } from "@prisma/client/runtime/client";
 import { AddToCartDTO } from "./cart.schema.js";
-import { Cart, CartItem } from "@prisma/client";
+import { Cart, CartItem, Product } from "@prisma/client";
 
 export interface CartProductData {
   id: string;
@@ -23,6 +23,10 @@ export interface CartDetails {
   items: CartItemData[];
 }
 
+export interface CartItemDetails extends CartItem {
+  product: Product;
+}
+
 
 export interface ICartRepository {
 
@@ -38,11 +42,13 @@ export interface ICartRepository {
     productId: string,
     quantity: number,
   ): Promise<CartItem>;
-  
+  getCartItemById(cartItemId: string): Promise<CartItemDetails | null>;
   updateCartItemQuantity(
     cartItemId: string,
     quantity: number,
   ): Promise<CartItem>;
+
+  upsertCartItem(cartId:string,productId:string,quantity:number): Promise<CartItem>;
 
   removeCartItem(cartItemId: string): Promise<void>;
 

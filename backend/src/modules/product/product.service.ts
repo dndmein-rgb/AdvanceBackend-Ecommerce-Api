@@ -1,9 +1,17 @@
 import { AppError } from "../../utils/AppError.js";
 import { deleteFromCloudinary } from "../../utils/cloudinary.helper.js";
 import { ICategoryRepository } from "../category/category.interface.js";
-import { IProductRepository, UpdateProductInput } from "./product.interface.js";
+import {
+  IProductRepository,
+  PaginationOptions,
+  UpdateProductInput,
+} from "./product.interface.js";
 import { toProductListResponse, toProductResponse } from "./product.mapper.js";
-import { CreateProductDTO, UpdateProductDTO } from "./product.schema.js";
+import {
+  CreateProductDTO,
+  ProductPaginationDTO,
+  UpdateProductDTO,
+} from "./product.schema.js";
 
 export class ProductService {
   constructor(
@@ -107,7 +115,7 @@ export class ProductService {
     }
 
     const deletedProduct = await this.productRepo.deleteProductById(productId);
-    return deletedProduct;
+    return toProductResponse(deletedProduct);
   }
 
   async getProductsByCategorySlug(slug: string) {
@@ -123,9 +131,29 @@ export class ProductService {
     return toProductListResponse(products);
   }
 
-  async getAllProducts() {
-    const products = await this.productRepo.getAllProducts();
-    return toProductListResponse(products);
+  async getAllProducts(data: ProductPaginationDTO) {
+    const { page, limit } = data;
+
+    const pagination: PaginationOptions = {
+      skip: (page - 1) * limit,
+      take: limit,
+    };
+    const { products, total } =
+      await this.productRepo.getAllProducts(pagination);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      products: toProductListResponse(products),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 
   async toggleActive(productId: string, sellerId: string) {
@@ -138,17 +166,37 @@ export class ProductService {
       throw new AppError("You cannot update this product", 403);
     }
 
-    const updatedProduct= await this.productRepo.toggleActive(
+    const updatedProduct = await this.productRepo.toggleActive(
       productId,
       sellerId,
       !product.isActive,
     );
-    return toProductResponse(updatedProduct)
+    return toProductResponse(updatedProduct);
   }
 
-  async getAllActiveProducts(){
-    const products=await this.productRepo.getAllActiveProducts()
+  async getAllActiveProducts(data: ProductPaginationDTO) {
+    const { page, limit } = data;
 
-    return toProductListResponse(products);
+    const pagination: PaginationOptions = {
+      skip: (page - 1) * limit,
+      take: limit,
+    };
+
+    const { products, total } =
+      await this.productRepo.getAllActiveProducts(pagination);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      products: toProductListResponse(products),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 }

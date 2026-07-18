@@ -1,6 +1,6 @@
 import { Cart, CartItem } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
-import { CartDetails, ICartRepository } from "./cart.interface.js";
+import { CartDetails, CartItemDetails, ICartRepository } from "./cart.interface.js";
 
 export class CartRepository implements ICartRepository {
   async getCartByUserId(userId: string): Promise<CartDetails | null> {
@@ -27,7 +27,7 @@ export class CartRepository implements ICartRepository {
     return cart;
   }
   async getCartById(cartId: string): Promise<CartDetails | null> {
-     const cart = await prisma.cart.findUnique({
+    const cart = await prisma.cart.findUnique({
       where: {
         id: cartId,
       },
@@ -51,15 +51,15 @@ export class CartRepository implements ICartRepository {
     return cart;
   }
 
-  async createCart(userId:string):Promise<Cart>{
+  async createCart(userId: string): Promise<Cart> {
     return await prisma.cart.create({
-      data:{userId}
-    })
+      data: { userId },
+    });
   }
 
-   async getCartItem(
+  async getCartItem(
     cartId: string,
-    productId: string
+    productId: string,
   ): Promise<CartItem | null> {
     return await prisma.cartItem.findFirst({
       where: {
@@ -69,19 +69,26 @@ export class CartRepository implements ICartRepository {
     });
   }
 
-  async createCartItem(cartId: string, productId: string, quantity: number): Promise<CartItem> {
+  async createCartItem(
+    cartId: string,
+    productId: string,
+    quantity: number,
+  ): Promise<CartItem> {
     return await prisma.cartItem.create({
-      data:{
+      data: {
         cartId,
         productId,
-        quantity
-      }
-    })
+        quantity,
+      },
+    });
   }
 
-  async updateCartItemQuantity(cartItemId:string,quantity:number):Promise<CartItem>{
+  async updateCartItemQuantity(
+    cartItemId: string,
+    quantity: number,
+  ): Promise<CartItem> {
     return await prisma.cartItem.update({
-    where: {
+      where: {
         id: cartItemId,
       },
       data: {
@@ -103,5 +110,34 @@ export class CartRepository implements ICartRepository {
         cartId,
       },
     });
+  }
+  async getCartItemById(cartItemId: string): Promise<CartItemDetails | null> {
+    const cartItem = await prisma.cartItem.findUnique({
+      where: {
+        id: cartItemId,
+      },
+      include: {
+        product: true,
+      },
+    });
+
+    return cartItem as CartItemDetails | null;
+  }
+  async upsertCartItem(cartId: string, productId: string, quantity: number): Promise<CartItem> {
+    return await prisma.cartItem.upsert({
+      where:{cartId_productId:{
+        cartId,productId
+      }},
+      update:{
+        quantity:{
+          increment:quantity
+        }
+      },
+      create:{
+        cartId,
+        productId,
+        quantity
+      }
+    })
   }
 }

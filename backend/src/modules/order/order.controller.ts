@@ -14,8 +14,8 @@ export const createOrderController = catchAsync(async (req: Request, res: Respon
 
 export const getOrderByIdController=catchAsync(async (req: Request, res: Response)=>{
     const {orderId}=req.params as {orderId:string}
-    const result=await orderService.getOrderById(orderId);
-    sendResponse(res, 201, {
+    const result=await orderService.getOrderById(orderId,req.user!.id);
+    sendResponse(res, 200, {
     success: true,
     message: "Order details fetched successfully",
     data: result,
@@ -24,7 +24,7 @@ export const getOrderByIdController=catchAsync(async (req: Request, res: Respons
 
 export const getMyOrdersController=catchAsync(async (req: Request, res: Response)=>{
     const result=await orderService.getMyOrders(req.user!.id)
-    sendResponse(res, 201, {
+    sendResponse(res, 200, {
     success: true,
     message: "User orders fetched successfully",
     data: result,

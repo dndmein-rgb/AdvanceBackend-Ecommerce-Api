@@ -47,7 +47,7 @@ export class CategoryService {
     if (!category) {
       throw new AppError("Category not found", 404);
     }
-    return category;
+    return toCategoryResponse(category);
   }
   async deleteCategory(categoryId: string) {
     const existingCategory =

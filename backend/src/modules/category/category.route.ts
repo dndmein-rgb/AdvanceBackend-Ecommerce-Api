@@ -31,7 +31,7 @@ router
   router.route("/:categoryId").get(authenticate,getCategoryByIdController)
 
 router
-  .route("/:id")
+  .route("/update/:categoryId")
   .patch(
     authenticate,
     authorize("ADMIN"),

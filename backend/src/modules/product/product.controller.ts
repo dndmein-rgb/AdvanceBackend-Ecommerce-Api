@@ -6,6 +6,7 @@ import {
   deleteFromCloudinary,
   uploadToCloudinary,
 } from "../../utils/cloudinary.helper.js";
+import { ProductPaginationDTO, productPaginationSchema } from "./product.schema.js";
 
 export const createProductController = catchAsync(
   async (req: Request, res: Response) => {
@@ -66,7 +67,8 @@ export const getProductsByCategoryIdController = catchAsync(
 
 export const getAllActiveProductsController = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await productService.getAllActiveProducts();
+     const pagination = productPaginationSchema.parse(req.query);
+    const result = await productService.getAllActiveProducts(pagination);
     sendResponse(res, 200, {
       success: true,
       message: "Active products fetched successfully",
@@ -76,7 +78,9 @@ export const getAllActiveProductsController = catchAsync(
 );
 export const getAllProductsController = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await productService.getAllProducts();
+   const pagination = productPaginationSchema.parse(req.query);
+
+const result = await productService.getAllActiveProducts(pagination);
     sendResponse(res, 200, {
       success: true,
       message: "Products fetched successfully",

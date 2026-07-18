@@ -43,4 +43,5 @@ export interface IOrderRepository {
     orderId: string,
     status: OrderStatus,
   ): Promise<OrderDetails>;
+  cancelOrder(orderId:string):Promise<OrderDetails>
 }

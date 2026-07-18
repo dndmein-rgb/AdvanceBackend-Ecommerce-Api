@@ -2,6 +2,7 @@ import { Prisma, Product } from "@prisma/client";
 import {
   CreateProductInput,
   IProductRepository,
+  PaginationOptions,
   UpdateProductInput,
 } from "./product.interface.js";
 import { prisma } from "../../lib/prisma.js";
@@ -45,12 +46,21 @@ export class ProductRepository implements IProductRepository {
     });
   }
 
-  async getAllProducts(): Promise<Product[]> {
-    return await prisma.product.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+  async getAllProducts(pagination:PaginationOptions): Promise<{ products: Product[]; total: number }> {
+    
+    const [products,total]=await prisma.$transaction([
+      prisma.product.findMany({
+        skip:pagination.skip,
+        take:pagination.take,
+        orderBy:{
+          createdAt:"desc"
+        }
+      }),
+      prisma.product.count()
+    ])
+    return {
+      products,total
+    }
   }
 
   async updateProduct(id: string, data: UpdateProductInput): Promise<Product> {
@@ -69,12 +79,29 @@ export class ProductRepository implements IProductRepository {
       data: { isActive },
     });
   }
-  async getAllActiveProducts(): Promise<Product[]> {
-    return await prisma.product.findMany({
+  async getAllActiveProducts(pagination:PaginationOptions): Promise<{ products: Product[]; total: number }> {
+     const [products, total] = await prisma.$transaction([
+      prisma.product.findMany({
+      skip:pagination.skip,
+      take:pagination.take,
       where: {
         isActive: true,
       },
-    });
+      orderBy:{
+        createdAt:"desc",
+      },
+    }),
+prisma.product.count({
+      where: {
+        isActive: true,
+      },
+    }),
+
+  ]);
+  return {
+    products,
+    total,
+  };
   }
 
   async getProductsByIds(productIds: string[]): Promise<Product[]> {

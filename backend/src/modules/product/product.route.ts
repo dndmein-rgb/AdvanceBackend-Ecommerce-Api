@@ -11,13 +11,18 @@ import {
 } from "./product.controller.js";
 import { upload } from "../../middleware/multer.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
-import { createProductSchema, updateProductSchema } from "./product.schema.js";
+import { createProductSchema, productPaginationSchema, updateProductSchema } from "./product.schema.js";
 
 const router = express.Router();
 
 router
   .route("/all-products")
-  .get(authenticate, authorize("ADMIN"), getAllProductsController);
+  .get(
+    validate(productPaginationSchema, "query"),
+    authenticate,
+    authorize("ADMIN"),
+    getAllProductsController,
+  );
 
 router
   .route("/")

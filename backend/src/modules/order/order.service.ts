@@ -12,10 +12,16 @@ export class OrderService {
     userId: string,
     data: CreateOrderDTO,
   ): Promise<OrderResponseDTO> {
-    const { items, addressId } = data;
+    const { items } = data;
 
     if (!items || items.length === 0) {
       throw new AppError("Order must contain atleast one item", 400);
+    }
+
+    const uniqueProductIds = new Set(items.map((item) => item.productId));
+
+    if (uniqueProductIds.size !== items.length) {
+      throw new AppError("Duplicate products are not allowed in an order", 400);
     }
 
     const createdOrder = await this.orderRepo.createOrder(userId, data);
@@ -23,14 +29,18 @@ export class OrderService {
     return toOrderResponse(createdOrder);
   }
 
-  async getOrderById(orderId: string): Promise<OrderResponseDTO> {
+  async getOrderById(
+    orderId: string,
+    userId: string,
+  ): Promise<OrderResponseDTO> {
     const order = await this.orderRepo.getOrderById(orderId);
     if (!order) {
       throw new AppError("Order not found", 404);
     }
+    if (order.userId !== userId) {
+      throw new AppError("You cannot access this order", 403);
+    }
 
-    // const isBuyer = order.userId === userId;
-    // const isSeller=order.items.some((item)=>item.)
     return toOrderResponse(order);
   }
 
@@ -48,12 +58,13 @@ export class OrderService {
       throw new AppError("Order not found", 404);
     }
 
-    const updatedOrder = await this.orderRepo.updateOrderStatus(
-      orderId,
-      orderStatus,
-    );
+    if (order.orderStatus !== OrderStatus.PENDING) {
+      throw new AppError("Only pending orders can be updated", 400);
+    }
 
-    return toOrderResponse(updatedOrder);
+    const cancelledOrder = await this.orderRepo.cancelOrder(orderId);
+
+    return toOrderResponse(cancelledOrder);
   }
 
   async cancelOrder(

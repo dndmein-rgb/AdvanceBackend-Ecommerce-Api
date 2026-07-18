@@ -20,5 +20,11 @@ export const updateProductSchema=z.object({
     stock:z.coerce.number().int().nonnegative().optional()
 }).strict()
 
+export const productPaginationSchema=z.object({
+     page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(10),
+})
+
 export type CreateProductDTO=z.infer<typeof createProductSchema>
 export type UpdateProductDTO=z.infer<typeof updateProductSchema>
+export type ProductPaginationDTO=z.infer<typeof productPaginationSchema>

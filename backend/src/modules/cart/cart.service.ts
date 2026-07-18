@@ -33,18 +33,13 @@ export class CartService {
       }
     }
     const existingItem = await this.cartRepo.getCartItem(cart.id, productId);
-    if (existingItem) {
-      const newQuantity = existingItem.quantity + quantity;
-      if (newQuantity > product.stock) {
-        throw new AppError("Insufficient stock", 400);
-      }
-      await this.cartRepo.updateCartItemQuantity(existingItem.id, newQuantity);
-    } else {
-      if (quantity > product.stock) {
-        throw new AppError("Insufficient stock", 400);
-      }
-      await this.cartRepo.createCartItem(cart.id, productId, quantity);
+    const finalQuantity = (existingItem?.quantity ?? 0) + quantity;
+
+    if (finalQuantity > product.stock) {
+      throw new AppError("Insufficient stock", 400);
     }
+
+    await this.cartRepo.upsertCartItem(cart.id, productId, quantity);
     const updatedCart = await this.cartRepo.getCartById(cart.id);
 
     if (!updatedCart) {
@@ -65,6 +60,13 @@ export class CartService {
       }
     }
 
+    const invalidItems = cart.items.filter(
+      (item) => !item.product.isActive || item.product.stock < item.quantity,
+    );
+    if (invalidItems.length > 0) {
+      throw new AppError("Cart contains unavailable products", 400);
+    }
+
     return toCartResponse(cart);
   }
   async updateCartItemQuantity(
@@ -77,10 +79,18 @@ export class CartService {
     if (!cart) {
       throw new AppError("Cart not found", 404);
     }
-    const cartItem = cart.items.find((item) => item.id === cartItemId);
-
+    const cartItem = await this.cartRepo.getCartItemById(cartItemId);
     if (!cartItem) {
       throw new AppError("Cart item not found", 404);
+    }
+
+    // Security check
+    if (cartItem.cartId !== cart.id) {
+      throw new AppError("You cannot modify this cart item", 403);
+    }
+
+    if (!cartItem.product.isActive) {
+      throw new AppError("Product is no longer available", 400);
     }
     if (quantity > cartItem.product.stock) {
       throw new AppError("Requested quantity exceeds stock", 400);
@@ -101,8 +111,8 @@ export class CartService {
     if (!cart) {
       throw new AppError("Cart nor found", 404);
     }
-    const item = cart.items.find((item) => item.id === cartItemId);
-    if (!item) {
+    const cartItem = await this.cartRepo.getCartItemById(cartItemId);
+    if (!cartItem) {
       throw new AppError("Cart item not found", 404);
     }
     await this.cartRepo.removeCartItem(cartItemId);
@@ -117,7 +127,7 @@ export class CartService {
   async clearCart(userId: string): Promise<CartResponseDTO> {
     const cart = await this.cartRepo.getCartByUserId(userId);
     if (!cart) {
-      throw new AppError("Cart nor found", 404);
+      throw new AppError("Cart not found", 404);
     }
     await this.cartRepo.clearCart(cart.id);
 
