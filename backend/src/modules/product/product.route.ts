@@ -52,6 +52,6 @@ router.route("/category/:slug").get(getProductsByCategoryIdController);
 
 router.route("/:productId/toggle").patch(authenticate,authorize("SELLER"),toggleActiveProductController)
 
-router.route("/active").get(getAllActiveProductsController)
+router.route("/active").get(validate(productPaginationSchema,"query"),getAllActiveProductsController)
 
 export default router;

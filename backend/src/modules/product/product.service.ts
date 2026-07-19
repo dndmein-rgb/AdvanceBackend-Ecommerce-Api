@@ -1,9 +1,10 @@
 import { AppError } from "../../utils/AppError.js";
 import { deleteFromCloudinary } from "../../utils/cloudinary.helper.js";
+import { decodeCursor, encodeCursor } from "../../utils/cursor.helper.js";
 import { ICategoryRepository } from "../category/category.interface.js";
 import {
+  CursorPaginationOptions,
   IProductRepository,
-  PaginationOptions,
   UpdateProductInput,
 } from "./product.interface.js";
 import { toProductListResponse, toProductResponse } from "./product.mapper.js";
@@ -83,7 +84,6 @@ export class ProductService {
         throw new AppError("Category not found", 404);
       }
     }
-
     const updatedProduct = await this.productRepo.updateProduct(
       productId,
       updatedData,
@@ -132,26 +132,34 @@ export class ProductService {
   }
 
   async getAllProducts(data: ProductPaginationDTO) {
-    const { page, limit } = data;
+    const { cursor, limit } = data;
 
-    const pagination: PaginationOptions = {
-      skip: (page - 1) * limit,
-      take: limit,
+    const pagination: CursorPaginationOptions = {
+      limit,
+      cursor: cursor ? decodeCursor(cursor) : undefined,
     };
-    const { products, total } =
-      await this.productRepo.getAllProducts(pagination);
+    const products = await this.productRepo.getAllProducts(pagination);
 
-    const totalPages = Math.ceil(total / limit);
+    let nextCursor: null | string = null;
+    const hasNextPage = products.length > limit;
+    if (hasNextPage) {
+      products.pop();
+    }
+    if (hasNextPage) {
+      const lastProduct = products[products.length - 1];
+
+      nextCursor = encodeCursor({
+        createdAt: lastProduct.createdAt,
+        id: lastProduct.id,
+      });
+    }
 
     return {
       products: toProductListResponse(products),
       pagination: {
-        page,
         limit,
-        total,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
+        hasNextPage,
+        nextCursor,
       },
     };
   }
@@ -175,28 +183,35 @@ export class ProductService {
   }
 
   async getAllActiveProducts(data: ProductPaginationDTO) {
-    const { page, limit } = data;
+    const { cursor, limit } = data;
 
-    const pagination: PaginationOptions = {
-      skip: (page - 1) * limit,
-      take: limit,
+    const pagination: CursorPaginationOptions = {
+      limit,
+      cursor: cursor ? decodeCursor(cursor) : undefined,
     };
+    const products = await this.productRepo.getAllActiveProducts(pagination);
+    let nextCursor: null | string = null;
+    const hasNextPage = products.length > limit;
+    if (hasNextPage) {
+      products.pop();
+    }
+    if (hasNextPage) {
+      const lastProduct = products[products.length - 1];
 
-    const { products, total } =
-      await this.productRepo.getAllActiveProducts(pagination);
-
-    const totalPages = Math.ceil(total / limit);
+      nextCursor = encodeCursor({
+        createdAt: lastProduct.createdAt,
+        id: lastProduct.id,
+      });
+    }
 
     return {
       products: toProductListResponse(products),
       pagination: {
-        page,
         limit,
-        total,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
+        hasNextPage,
+        nextCursor,
       },
     };
   }
 }
+

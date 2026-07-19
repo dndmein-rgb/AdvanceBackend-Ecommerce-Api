@@ -119,6 +119,9 @@ model Product {
   @@index([categoryId])
   @@index([categoryId, isActive])
   @@index([createdAt])
+  
+  @@unique([createdAt, id])
+  
 }
 
 model Order {

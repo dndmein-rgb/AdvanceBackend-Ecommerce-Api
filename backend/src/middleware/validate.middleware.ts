@@ -5,10 +5,7 @@ import { AppError } from "../utils/AppError.js";
 type ValidationTarget = "body" | "query" | "params";
 
 export const validate =
-  (
-    schema: ZodTypeAny,
-    target: ValidationTarget = "body",
-  ) =>
+  (schema: ZodTypeAny, target: ValidationTarget = "body") =>
   (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req[target]);
 
@@ -24,7 +21,13 @@ export const validate =
       );
     }
 
-    req[target] = result.data as any;
+    if (target === "body") {
+      req.body = result.data;
+    } else if (target === "params") {
+      req.params = req.body;
+    } else {
+      Object.assign(req.query, result.data);
+    }
 
     next();
   };

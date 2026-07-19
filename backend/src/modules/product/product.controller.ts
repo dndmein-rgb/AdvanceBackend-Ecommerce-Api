@@ -80,7 +80,7 @@ export const getAllProductsController = catchAsync(
   async (req: Request, res: Response) => {
    const pagination = productPaginationSchema.parse(req.query);
 
-const result = await productService.getAllActiveProducts(pagination);
+const result = await productService.getAllProducts(pagination);
     sendResponse(res, 200, {
       success: true,
       message: "Products fetched successfully",

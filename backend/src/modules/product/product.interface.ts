@@ -1,10 +1,14 @@
 import { Prisma, Product } from "@prisma/client";
 
-export interface PaginationOptions {
-  skip: number;
-  take: number;
+export interface Cursor {
+  createdAt: Date;
+  id: string;
 }
 
+export interface CursorPaginationOptions {
+  cursor?: Cursor;
+  limit: number;
+}
 
 export interface CreateProductInput {
   sellerId: string;
@@ -41,12 +45,9 @@ export interface IProductRepository {
 
   getProductsByIds(productIds: string[]): Promise<Product[]>;
 
-  getAllActiveProducts(
-    pagination: PaginationOptions,
-  ): Promise<{ products: Product[]; total: number }>;
-  getAllProducts(
-    pagination: PaginationOptions,
-  ): Promise<{ products: Product[]; total: number }>;
+  getAllProducts(pagination: CursorPaginationOptions): Promise<Product[]>;
+
+  getAllActiveProducts(pagination: CursorPaginationOptions): Promise<Product[]>;
 
   updateProduct(id: string, data: UpdateProductInput): Promise<Product>;
 

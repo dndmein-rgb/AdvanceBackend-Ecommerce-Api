@@ -1,8 +1,8 @@
 import { Prisma, Product } from "@prisma/client";
 import {
   CreateProductInput,
+  CursorPaginationOptions,
   IProductRepository,
-  PaginationOptions,
   UpdateProductInput,
 } from "./product.interface.js";
 import { prisma } from "../../lib/prisma.js";
@@ -46,23 +46,36 @@ export class ProductRepository implements IProductRepository {
     });
   }
 
-  async getAllProducts(pagination:PaginationOptions): Promise<{ products: Product[]; total: number }> {
-    
-    const [products,total]=await prisma.$transaction([
-      prisma.product.findMany({
-        skip:pagination.skip,
-        take:pagination.take,
-        orderBy:{
-          createdAt:"desc"
-        }
-      }),
-      prisma.product.count()
-    ])
-    return {
-      products,total
-    }
-  }
+  async getAllActiveProducts(
+    pagination: CursorPaginationOptions,
+  ): Promise<Product[]> {
+    return await prisma.product.findMany({
+      take: pagination.limit+1,
 
+      where: {
+        isActive: true,
+      },
+
+      ...(pagination.cursor && {
+        cursor: {
+          createdAt_id: {
+            createdAt: pagination.cursor.createdAt,
+            id: pagination.cursor.id,
+          },
+        },
+        skip: 1,
+      }),
+
+      orderBy: [
+        {
+          createdAt: "desc",
+        },
+        {
+          id: "desc",
+        },
+      ],
+    });
+  }
   async updateProduct(id: string, data: UpdateProductInput): Promise<Product> {
     return await prisma.product.update({
       where: { id },
@@ -79,29 +92,31 @@ export class ProductRepository implements IProductRepository {
       data: { isActive },
     });
   }
-  async getAllActiveProducts(pagination:PaginationOptions): Promise<{ products: Product[]; total: number }> {
-     const [products, total] = await prisma.$transaction([
-      prisma.product.findMany({
-      skip:pagination.skip,
-      take:pagination.take,
-      where: {
-        isActive: true,
-      },
-      orderBy:{
-        createdAt:"desc",
-      },
-    }),
-prisma.product.count({
-      where: {
-        isActive: true,
-      },
-    }),
+  async getAllProducts(
+    pagination: CursorPaginationOptions,
+  ): Promise<Product[]> {
+    return await prisma.product.findMany({
+      take: pagination.limit+1,
 
-  ]);
-  return {
-    products,
-    total,
-  };
+      ...(pagination.cursor && {
+        cursor: {
+          createdAt_id: {
+            createdAt: pagination.cursor.createdAt,
+            id: pagination.cursor.id,
+          },
+        },
+        skip: 1,
+      }),
+
+      orderBy: [
+        {
+          createdAt: "desc",
+        },
+        {
+          id: "desc",
+        },
+      ],
+    });
   }
 
   async getProductsByIds(productIds: string[]): Promise<Product[]> {
