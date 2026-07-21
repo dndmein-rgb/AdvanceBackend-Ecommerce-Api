@@ -2,18 +2,33 @@ import express, { Request, Response, urlencoded } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { FRONTEND_URL } from "./config/config.js";
+import { globalLimiter } from "./middleware/rate-limit.middleware.js";
+
 
 export const app = express();
 
+// only in production if using NGINX, AWS or etc
+// app.set("trust proxy", 1);
+
+app.use(globalLimiter)
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
 app.use(cookieParser());
+
 app.use(
   cors({
     origin: FRONTEND_URL,
     credentials: true,
   }),
 );
+
+app.get("/ip", (req, res) => {
+  res.json({
+    ip: req.ip,
+    ips: req.ips,
+    xForwardedFor: req.headers["x-forwarded-for"],
+  });
+});
 app.get("/health-check", (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
